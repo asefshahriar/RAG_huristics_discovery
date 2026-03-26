@@ -1,0 +1,88 @@
+{
+  "baselines": {
+    "edd": 68024.95,
+    "spt": 56916.8625,
+    "mdd": 42107.2125,
+    "mddc_like": 42071.45
+  },
+  "full_system": {
+    "train": {
+      "iterations": 10,
+      "baseline_scores": {
+        "edd": 5911.665,
+        "spt": 5026.045,
+        "mdd": 4115.585,
+        "mddc_like": 4110.33
+      },
+      "best_program_found": true,
+      "use_rag": true,
+      "use_islands": true,
+      "include_code_sources": true
+    },
+    "eval": {
+      "feasible": true,
+      "score": 42107.2125,
+      "reason": "ok"
+    }
+  },
+  "ablation_no_rag": {
+    "train": {
+      "iterations": 5,
+      "baseline_scores": {
+        "edd": 5911.665,
+        "spt": 5026.045,
+        "mdd": 4115.585,
+        "mddc_like": 4110.33
+      },
+      "best_program_found": true,
+      "use_rag": false,
+      "use_islands": true,
+      "include_code_sources": true
+    },
+    "eval": {
+      "feasible": true,
+      "score": 42107.2125,
+      "reason": "ok"
+    }
+  },
+  "ablation_no_islands": {
+    "train": {
+      "iterations": 5,
+      "baseline_scores": {
+        "edd": 5911.665,
+        "spt": 5026.045,
+        "mdd": 4115.585,
+        "mddc_like": 4110.33
+      },
+      "best_program_found": true,
+      "use_rag": true,
+      "use_islands": false,
+      "include_code_sources": true
+    },
+    "eval": {
+      "feasible": true,
+      "score": 42107.2125,
+      "reason": "ok"
+    }
+  },
+  "ablation_no_code_retrieval": {
+    "train": {
+      "iterations": 5,
+      "baseline_scores": {
+        "edd": 5911.665,
+        "spt": 5026.045,
+        "mdd": 4115.585,
+        "mddc_like": 4110.33
+      },
+      "best_program_found": true,
+      "use_rag": true,
+      "use_islands": true,
+      "include_code_sources": false
+    },
+    "eval": {
+      "feasible": true,
+      "score": 42107.2125,
+      "reason": "ok"
+    }
+  }
+}
