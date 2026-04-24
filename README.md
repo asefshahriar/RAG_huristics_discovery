@@ -9,6 +9,7 @@ Modular Python framework for retrieval-augmented heuristic discovery in combinat
    - `!git clone <your-repo-url>`
    - `%cd RAG_huristics_discovery`
    - `!pip install -r requirements-colab.txt`
+   - `!pip install -e .`
 3. Add secrets in Colab:
    - Set `OPENAI_API_KEY` in Colab Secrets (optional; system has fallback generation if not set).
 4. Prepare corpus and run:

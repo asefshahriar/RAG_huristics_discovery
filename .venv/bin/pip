@@ -1,4 +1,4 @@
-#!/Users/asefshahriar/Library/CloudStorage/OneDrive-Personal/Dev/RAG_huristics_discovery/.venv/bin/python3
+#!/Users/asefshahriar/Library/CloudStorage/OneDrive-Personal/Dev/RAG_huristics_discovery/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

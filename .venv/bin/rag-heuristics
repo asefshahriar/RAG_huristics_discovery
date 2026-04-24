@@ -1,0 +1,6 @@
+#!/Users/asefshahriar/Library/CloudStorage/OneDrive-Personal/Dev/RAG_huristics_discovery/.venv/bin/python
+import sys
+from rag_heuristics.cli import app
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(app())
