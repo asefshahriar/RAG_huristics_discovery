@@ -11,6 +11,21 @@ from rag_heuristics.config import Settings
 from rag_heuristics.core.io import read_jsonl
 
 
+def _resolve_upsert_batch_size(collection: object, default: int = 1000) -> int:
+    """
+    Pick a safe upsert batch size across Chroma versions.
+
+    Some builds expose `max_batch_size` from the Rust client and fail if the
+    payload exceeds it. We read it when available and keep a conservative
+    fallback so large corpora still index reliably.
+    """
+    chroma_client = getattr(collection, "_client", None)
+    max_batch_size = getattr(chroma_client, "max_batch_size", None)
+    if isinstance(max_batch_size, int) and max_batch_size > 0:
+        return max_batch_size
+    return default
+
+
 def build_index(settings: Settings, collection_name: str = "heuristics_corpus") -> int:
     rows = read_jsonl(settings.normalized_docs_path)
     if chromadb is None or SentenceTransformerEmbeddingFunction is None:
@@ -41,5 +56,12 @@ def build_index(settings: Settings, collection_name: str = "heuristics_corpus") 
         m["citation"] = r["citation"]
         m["source_path"] = r["source_path"]
         metadatas.append(m)
-    collection.upsert(ids=ids, documents=docs, metadatas=metadatas)
+    batch_size = _resolve_upsert_batch_size(collection)
+    for start in range(0, len(ids), batch_size):
+        end = start + batch_size
+        collection.upsert(
+            ids=ids[start:end],
+            documents=docs[start:end],
+            metadatas=metadatas[start:end],
+        )
     return len(ids)
