@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -10,6 +11,7 @@ class Settings(BaseSettings):
     model_provider: str = "openai"
     model_name: str = "gpt-4o-mini"
     embedding_model: str = "all-MiniLM-L6-v2"
+    hf_token: Optional[str] = None
 
     vector_db_path: Path = Field(default=Path("data/vector_db"))
     normalized_docs_path: Path = Field(default=Path("data/corpus/normalized_docs.jsonl"))

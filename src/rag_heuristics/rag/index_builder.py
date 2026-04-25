@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 try:
     import chromadb
     from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
@@ -34,7 +36,16 @@ def build_index(settings: Settings, collection_name: str = "heuristics_corpus") 
     settings.vector_db_path.mkdir(parents=True, exist_ok=True)
     client = chromadb.PersistentClient(path=str(settings.vector_db_path))
     try:
-        embedding_fn = SentenceTransformerEmbeddingFunction(model_name=settings.embedding_model)
+        embedding_kwargs = {}
+        if settings.hf_token:
+            # Ensure downstream HF clients can pick up auth for higher limits.
+            os.environ.setdefault("HF_TOKEN", settings.hf_token)
+            os.environ.setdefault("HUGGINGFACE_HUB_TOKEN", settings.hf_token)
+            embedding_kwargs["token"] = settings.hf_token
+        embedding_fn = SentenceTransformerEmbeddingFunction(
+            model_name=settings.embedding_model,
+            **embedding_kwargs,
+        )
     except Exception:
         # If sentence-transformers backend is unavailable, keep fallback mode active.
         return len(rows)
