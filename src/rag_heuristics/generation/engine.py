@@ -5,6 +5,7 @@ import random
 import sqlite3
 import time
 from pathlib import Path
+from typing import Literal
 
 from rag_heuristics.config import Settings
 from rag_heuristics.experiments.islands import IslandPool
@@ -115,6 +116,35 @@ def _fallback_generate(rng: random.Random) -> str:
     return rng.choice(library)
 
 
+def _seed_strategy_source(seed_strategy: Literal["edd", "spt", "mdd"]) -> str:
+    if seed_strategy == "edd":
+        return (
+            "def assignment(processing_times: list[int], due_dates: list[int]) -> list[int]:\n"
+            "    return sorted(range(len(processing_times)), key=lambda i: (due_dates[i], processing_times[i]))\n"
+        )
+    if seed_strategy == "spt":
+        return (
+            "def assignment(processing_times: list[int], due_dates: list[int]) -> list[int]:\n"
+            "    return sorted(range(len(processing_times)), key=lambda i: processing_times[i])\n"
+        )
+    return (
+        "def assignment(processing_times: list[int], due_dates: list[int]) -> list[int]:\n"
+        "    unscheduled = set(range(len(processing_times)))\n"
+        "    schedule = []\n"
+        "    t = 0\n"
+        "    while unscheduled:\n"
+        "        j = min(unscheduled, key=lambda x: max(due_dates[x], t + processing_times[x]))\n"
+        "        schedule.append(j)\n"
+        "        unscheduled.remove(j)\n"
+        "        t += processing_times[j]\n"
+        "    return schedule\n"
+    )
+
+
+def _seed_query(seed_strategy: Literal["edd", "spt", "mdd"]) -> str:
+    return f"single machine total tardiness heuristics {seed_strategy.upper()} assignment"
+
+
 def train_smtt(
     settings: Settings,
     iterations: int = 50,
@@ -122,6 +152,7 @@ def train_smtt(
     use_rag: bool = True,
     use_islands: bool = True,
     include_code_sources: bool = True,
+    seed_strategy: Literal["edd", "spt", "mdd"] = "mdd",
 ) -> dict:
     init_program_db(settings.program_db_path)
     tracker = ExperimentTracker(settings.reports_dir / "training_log.jsonl")
@@ -144,6 +175,7 @@ def train_smtt(
         "mdd": evaluate_on_dataset(mdd, dataset).score,
         "mddc_like": evaluate_on_dataset(mddc_like, dataset).score,
     }
+    seed_program = _seed_strategy_source(seed_strategy)
 
     for i in range(iterations):
         island = islands.sample_island() if use_islands else islands.islands[0]
@@ -153,18 +185,22 @@ def train_smtt(
             if include_code_sources:
                 source_types.append("code")
             chunks = retriever.retrieve(
-                query="single machine total tardiness heuristics MDD EDD assignment",
+                query=_seed_query(seed_strategy),
                 problem_type="single_machine_total_tardiness",
                 top_k=settings.default_top_k,
                 source_types=source_types,
             )
         priors = top_programs(settings.program_db_path, "single_machine_total_tardiness", k=3)
+        if not priors:
+            priors = [seed_program]
+        else:
+            priors = [seed_program, *priors]
         prompt = build_generation_prompt("single_machine_total_tardiness", chunks, priors)
 
         try:
             source = _openai_generate(prompt, settings.model_name)
         except Exception:
-            source = _fallback_generate(rng)
+            source = rng.choice([seed_program, _fallback_generate(rng)])
 
         compiled = compile_assignment_function(source, timeout_seconds=settings.generation_timeout_seconds)
         if not compiled.ok or compiled.assignment_fn is None:
@@ -200,6 +236,7 @@ def train_smtt(
                 "reason": result.reason,
                 "baseline_scores": baseline_results,
                 "retrieved_chunks": [c.doc_id for c in chunks],
+                "seed_strategy": seed_strategy,
             }
         )
 
@@ -211,6 +248,7 @@ def train_smtt(
         "use_rag": use_rag,
         "use_islands": use_islands,
         "include_code_sources": include_code_sources,
+        "seed_strategy": seed_strategy,
     }
 
 

@@ -15,13 +15,17 @@ Modular Python framework for retrieval-augmented heuristic discovery in combinat
 4. Prepare corpus and run:
    - `!python -m rag_heuristics.cli ingest --source-dir data/raw`
    - `!python -m rag_heuristics.cli build-index`
-   - `!python -m rag_heuristics.cli train --problem-type single_machine_total_tardiness --iterations 60`
+   - `!python -m rag_heuristics.cli train --problem-type single_machine_total_tardiness --iterations 60 --seed-strategy mdd`
+   - `!python -m rag_heuristics.cli compare-tracks --problem-type single_machine_total_tardiness --iterations 60`
    - `!python -m rag_heuristics.cli evaluate --problem-type single_machine_total_tardiness --iterations 40`
 5. Outputs:
    - `reports/benchmark_summary.json`
    - `reports/benchmark_report.md`
+   - `reports/seed_strategy_comparison.json`
+   - `reports/seed_strategy_comparison.md`
    - `reports/training_log.jsonl`
 
 ## Notes
 - The project includes an SMTT plugin and is structured to add future problem plugins.
 - Retrieval supports a fallback text mode when vector dependencies are unavailable.
+- To mimic the paper/repo tracks, run `train` separately with `--seed-strategy edd`, `--seed-strategy spt`, and `--seed-strategy mdd`.
