@@ -4,6 +4,7 @@ import os
 import random
 import sqlite3
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
@@ -76,6 +77,52 @@ def top_programs(db_path: Path, problem_type: str, k: int = 5) -> list[str]:
             (problem_type, k),
         ).fetchall()
     return [r[0] for r in rows]
+
+
+@dataclass(frozen=True)
+class ProgramRecord:
+    program_id: int
+    score: float
+    feasible: bool
+    reason: str
+    island_id: int
+    source_code: str
+    prompt: str | None
+    created_at: float
+
+
+def top_program_records(db_path: Path, problem_type: str, k: int = 5) -> list[ProgramRecord]:
+    """Best feasible programs with metadata, ordered like `top_programs`."""
+    if k < 1:
+        return []
+    if not db_path.is_file():
+        return []
+    with sqlite3.connect(db_path) as con:
+        rows = con.execute(
+            """
+            SELECT id, score, feasible, reason, island_id, source_code, prompt, created_at
+            FROM programs
+            WHERE problem_type = ? AND feasible = 1
+            ORDER BY score ASC, created_at DESC
+            LIMIT ?
+            """,
+            (problem_type, k),
+        ).fetchall()
+    out: list[ProgramRecord] = []
+    for r in rows:
+        out.append(
+            ProgramRecord(
+                program_id=int(r[0]),
+                score=float(r[1]),
+                feasible=bool(r[2]),
+                reason=str(r[3]),
+                island_id=int(r[4]),
+                source_code=str(r[5]),
+                prompt=str(r[6]) if r[6] is not None else None,
+                created_at=float(r[7]),
+            )
+        )
+    return out
 
 
 def _openai_generate(prompt: str, model_name: str) -> str:
