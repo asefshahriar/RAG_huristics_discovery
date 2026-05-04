@@ -135,7 +135,6 @@ def _openai_generate(prompt: str, model_name: str) -> str:
     completion = client.responses.create(
         model=model_name,
         input=prompt,
-        temperature=0.7,
     )
     return completion.output_text.strip()
 

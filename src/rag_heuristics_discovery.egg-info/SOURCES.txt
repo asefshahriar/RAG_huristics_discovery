@@ -28,6 +28,8 @@ src/rag_heuristics/problems/smtt/spec.py
 src/rag_heuristics/rag/__init__.py
 src/rag_heuristics/rag/index_builder.py
 src/rag_heuristics/rag/retriever.py
+src/rag_heuristics/reporting/__init__.py
+src/rag_heuristics/reporting/paper_algorithms.py
 src/rag_heuristics/scripts/__init__.py
 src/rag_heuristics_discovery.egg-info/PKG-INFO
 src/rag_heuristics_discovery.egg-info/SOURCES.txt
